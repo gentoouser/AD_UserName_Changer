@@ -49,7 +49,7 @@ $ADServer = (Get-ADDomain).PDCEmulator
 # Where-Object {$_.Enabled -eq 'TRUE'} #Only get enabled users
 
 
-Get-ADUser -server $ADServer -searchbase $SearchBase -Filter * -Properties *  | 
+Get-ADUser -server $ADServer -searchbase $SearchBase -Filter * -Properties GivenName,Surname,sAMAccountName,DisplayName,StreetAddress,City,st,PostalCode,Country,Title,Company,Description,Department,physicalDeliveryOfficeName,telephoneNumber,pager,Mail,homeMDB,Manager,homeDirectory,Enabled,lastLogon,whencreated,msTSExpireDate,pwdLastSet  | 
 Select-Object @{Label = "First Name";Expression = {$_.GivenName}},
 @{Label = "Last Name";Expression = {$_.Surname}},
 @{Label = "Logon Name";Expression = {$_.sAMAccountName}},
@@ -63,7 +63,7 @@ Select-Object @{Label = "First Name";Expression = {$_.GivenName}},
 @{Label = "Company";Expression = {$_.Company}},
 @{Label = "Directorate";Expression = {$_.Description}},
 @{Label = "Department";Expression = {$_.Department}},
-@{Label = "Office";Expression = {$_.OfficeName}},
+@{Label = "Office";Expression = {$_.physicalDeliveryOfficeName}},
 @{Label = "Phone";Expression = {$_.telephoneNumber}},
 @{Label = "Jack";Expression = {$_.pager}},
 @{Label = "Email";Expression = {$_.Mail}},
