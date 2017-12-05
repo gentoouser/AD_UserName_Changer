@@ -3,7 +3,7 @@
 # WEBSITE : iTechguides.com
 # BLOG    : iTechguides.com/blog-2/
 # CREATED : 08-08-2014 
-# UPDATED : 27-11-2017 
+# UPDATED : 05-12-2017 
 # COMMENT : This script exports Active Directory users
 #           to a a csv file. v2.1 adds the condition to 
 #           ignore all users with the info (Notes) field
@@ -30,64 +30,29 @@ If ((Get-Module | Where-Object {$_.Name -Match "ActiveDirectory"}).Count -eq 0 )
 }
 
 
-#Define location of my script variable
-#the -parent switch returns one directory lower from directory defined. 
-#below will return up to ImportADUsers folder 
-#and since my files are located here it will find it.
-#It failes withpout appending "*.*" at the end
-
-$path = Split-Path -parent "\\wwt-fp03.wwtps.com\teams\it\Active Directory\*.*"
-
-#Create a variable for the date stamp in the log file
-
-$LogDate = get-date -f yyyyMMddhhmm
 
 #Define CSV and log file location variables
 #they have to be on the same location as the script
 
-$csvfile = $path + "\ALLADUsers_$logDate.csv"
-
-#import the ActiveDirectory Module
-
-#Import-Module ActiveDirectory
+$csvfile = ((Split-Path -Parent -Path $MyInvocation.MyCommand.Definition) + "\" + $MyInvocation.MyCommand.Name + "_" + (Get-Date -format yyyyMMdd-hhmm) + ".csv")
 
 
 #Sets the OU to do the base search for all user accounts, change as required.
-#Simon discovered that some users were missing
-#I decided to run the report from the root of the domain
-
-$SearchBase = "DC=WWTPS,DC=com"
+$SearchBase = (Get-ADDomain).DistinguishedName
 
 #Get Admin accountb credential
 
 #$GetAdminact = Get-Credential
 
 #Define variable for a server with AD web services installed
+$ADServer = (Get-ADDomain).PDCEmulator
 
-$ADServer = 'wwt-ad01.wwtps.com'
 
-#Find users that are not disabled
-#To test, I moved the following users to the OU=ADMigration:
-#Philip Steventon (kingston.gov.uk/RBK Users/ICT Staff/Philip Steventon) - Disabled account
-#Joseph Martins (kingston.gov.uk/RBK Users/ICT Staff/Joseph Martins) - Disabled account
-#may have to get accountb status with another AD object
+# Where-Object {$_.info -NE 'Migrated'} #ensures that updated users are never exported.
+# Where-Object {$_.Enabled -eq 'TRUE'} #Only get enabled users
 
-#Define "Account Status" 
-#Added the Where-Object clause on 23/07/2014
-#Requested by the project team. This 'flag field' needs
-#updated in the import script when users fields are updated
-#The word 'Migrated' is added in the Notes field, on the Telephone tab.
-#The LDAB object name for Notes is 'info'. 
 
-#$AllADUsers = Get-ADUser -server $ADServer `
-#-Credential $GetAdminact -searchbase $SearchBase `
-#-Filter * -Properties * | Where-Object {$_.info -NE 'Migrated'} #ensures that updated users are never exported.
-
-$AllADUsers = Get-ADUser -server $ADServer `
--searchbase $SearchBase `
--Filter * -Properties * | Where-Object {$_.info -NE 'Migrated'} #ensures that updated users are never exported.
-
-$AllADUsers |
+Get-ADUser -server $ADServer -searchbase $SearchBase -Filter * -Properties *  | 
 Select-Object @{Label = "First Name";Expression = {$_.GivenName}},
 @{Label = "Last Name";Expression = {$_.Surname}},
 @{Label = "Logon Name";Expression = {$_.sAMAccountName}},
@@ -117,6 +82,4 @@ Select-Object @{Label = "First Name";Expression = {$_.GivenName}},
 @{Label = "Days to RDS CAL Expiration";Expression = {$(([DateTime]($_.msTSExpireDate)) - (Get-Date)).Days}}, 
 @{Label = "Last Password Change";Expression = {[DateTime]::FromFileTime($_.pwdLastSet)}}, 
 @{Label = "Days from last password change";Expression = {$(([DateTime]::FromFileTime($_.pwdLastSet)) - (Get-Date)).Days}} | 
-#Export CSV report
-
 Export-Csv -Path $csvfile -NoTypeInformation
