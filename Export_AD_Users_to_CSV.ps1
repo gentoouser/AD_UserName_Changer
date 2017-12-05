@@ -5,10 +5,7 @@
 # CREATED : 08-08-2014 
 # UPDATED : 05-12-2017 
 # COMMENT : This script exports Active Directory users
-#           to a a csv file. v2.1 adds the condition to 
-#           ignore all users with the info (Notes) field
-#           found on the Telephones tab containing the 
-#           word 'Migrated'. 
+#           to a a csv file. 
 ###########################################################
 
 
