@@ -5,7 +5,10 @@
 # CREATED : 08-08-2014 
 # UPDATED : 05-12-2017 
 # COMMENT : This script exports Active Directory users
-#           to a a csv file. 
+#           to a a csv file. v2.1 adds the condition to 
+#           ignore all users with the info (Notes) field
+#           found on the Telephones tab containing the 
+#           word 'Migrated'. 
 ###########################################################
 
 
@@ -48,10 +51,9 @@ $ADServer = (Get-ADDomain).PDCEmulator
 # Where-Object {$_.info -NE 'Migrated'} #ensures that updated users are never exported.
 # Where-Object {$_.Enabled -eq 'TRUE'} #Only get enabled users
 
-
 Get-ADUser -server $ADServer -searchbase $SearchBase -Filter * -Properties GivenName,Surname,sAMAccountName,DisplayName,StreetAddress,City,st,PostalCode,Country,Title,Company,Description,Department,physicalDeliveryOfficeName,telephoneNumber,pager,Mail,homeMDB,Manager,homeDirectory,Enabled,lastLogon,whencreated,msTSExpireDate,pwdLastSet  | 
-Select-Object @{Label = "First Name";Expression = {$_.GivenName}},
-@{Label = "Last Name";Expression = {$_.Surname}},
+Select-Object @{Label = "Last Name";Expression = {$_.Surname}},
+@{Label = "First Name";Expression = {$_.GivenName}},
 @{Label = "Logon Name";Expression = {$_.sAMAccountName}},
 @{Label = "Display Name";Expression = {$_.DisplayName}},
 @{Label = "Full address";Expression = {$_.StreetAddress}},
